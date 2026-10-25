@@ -40,7 +40,28 @@ export class MaintenanceUtils {
         await GeneralUtils.randomSleep(700, 1400); 
 
         // 3. Eksekusi pemilihan opsi secara sinkron setelah UI-nya terpicu terbuka secara fisik
-        await selectLocator.selectOption(optionValue);
+        const requestedWear = Number.parseFloat(optionValue.replace('%', '').trim());
+        const availableOptions = await selectLocator.locator('option').evaluateAll(options =>
+            options.map(option => ({
+                value: (option as HTMLOptionElement).value,
+                wear: Number.parseFloat(option.textContent?.trim() ?? '')
+            })).filter(option => option.value && Number.isFinite(option.wear))
+        );
+        const selectedOption = availableOptions
+            .filter(option => option.wear <= requestedWear)
+            .sort((a, b) => b.wear - a.wear)[0];
+
+        if (!Number.isFinite(requestedWear) || !selectedOption) {
+            const available = availableOptions.map(option => option.wear + '%').join(', ');
+            throw new Error('Invalid repair wear threshold "' + optionValue + '"; available thresholds: ' + available);
+        }
+
+        if (selectedOption.wear !== requestedWear) {
+            console.log('[Maintenance] Requested ' + requestedWear + '%; using available lower threshold ' + selectedOption.wear + '%.');
+        }
+
+        // Select the rendered option's actual value; game thresholds are offered in 10% steps.
+        await selectLocator.selectOption(selectedOption.value);
         
         // Jeda sesaat seolah-olah manusia melepas fokus dari menu drop-down tersebut
         await GeneralUtils.randomSleep(500, 900);
