@@ -1,4 +1,5 @@
 import { Page } from "@playwright/test";
+        await locator.scrollIntoViewIfNeeded();
 
 require('dotenv').config();
 
