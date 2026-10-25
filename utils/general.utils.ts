@@ -1,5 +1,4 @@
 import { Page } from "@playwright/test";
-        await locator.scrollIntoViewIfNeeded();
 
 require('dotenv').config();
 
@@ -52,6 +51,7 @@ export class GeneralUtils {
     public static async moveAndClick(page: Page, locator: any, customTimeout = 10000) {
         // Menggunakan customTimeout jika dipasing, jika tidak kembali ke default 10 detik
         await locator.waitFor({ state: 'visible', timeout: customTimeout });
+        await locator.scrollIntoViewIfNeeded();
         const box = await locator.boundingBox();
         
         if (box) {
